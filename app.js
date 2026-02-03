@@ -4,7 +4,8 @@
 
 const STORAGE_KEYS = {
   customers: 'brick_ledger_customers',
-  transactions: 'brick_ledger_transactions'
+  transactions: 'brick_ledger_transactions',
+  theme: 'brick_ledger_theme'
 };
 
 function loadData(key) {
@@ -61,14 +62,40 @@ const monthPurchaseEl = document.getElementById('monthPurchase');
 const monthPaidEl = document.getElementById('monthPaid');
 const monthDiscountEl = document.getElementById('monthDiscount');
 const closingBalanceEl = document.getElementById('closingBalance');
+const lifetimePaidEl = document.getElementById('lifetimePaid');
+const lifetimeClosingEl = document.getElementById('lifetimeClosing');
 const exportExcelBtn = document.getElementById('exportExcelBtn');
 const exportCsvBtn = document.getElementById('exportCsvBtn');
 
 const summaryTableBody = document.querySelector('#summaryTable tbody');
+const themeToggleBtn = document.getElementById('themeToggleBtn');
 
 function generateId() {
   return Date.now().toString() + '_' + Math.random().toString(16).slice(2);
 }
+
+// ----- Theme handling -----
+function applyTheme(theme) {
+  if (theme === 'dark') {
+    document.body.classList.add('theme-dark');
+    themeToggleBtn.textContent = '☀ Light';
+  } else {
+    document.body.classList.remove('theme-dark');
+    themeToggleBtn.textContent = '🌙 Dark';
+  }
+}
+
+function initTheme() {
+  const saved = localStorage.getItem(STORAGE_KEYS.theme) || 'light';
+  applyTheme(saved);
+}
+
+themeToggleBtn.addEventListener('click', () => {
+  const isDark = document.body.classList.contains('theme-dark');
+  const newTheme = isDark ? 'light' : 'dark';
+  applyTheme(newTheme);
+  localStorage.setItem(STORAGE_KEYS.theme, newTheme);
+});
 
 // ----- Customer handling -----
 function renderCustomerOptions(filterText = '') {
@@ -100,13 +127,29 @@ function updateCurrentCustomerLabels() {
   currentCustomerInline.innerHTML = '<strong>For:</strong> ' + text;
 }
 
+// small helper to mark required empty inputs
+function markRequired(inputs) {
+  let valid = true;
+  inputs.forEach(el => {
+    if (!el.value || el.value.trim() === '') {
+      el.classList.add('input-error');
+      valid = false;
+    } else {
+      el.classList.remove('input-error');
+    }
+  });
+  return valid;
+}
+
 addCustomerBtn.addEventListener('click', () => {
-  const name = custName.value.trim();
-  const mobile = custMobile.value.trim();
-  if (!name || !mobile) {
-    alert('Please enter both name and mobile.');
+  const ok = markRequired([custName, custMobile]);
+  if (!ok) {
+    alert('Please fill required fields.');
     return;
   }
+
+  const name = custName.value.trim();
+  const mobile = custMobile.value.trim();
 
   let existing = customers.find(
     c => c.mobile === mobile || c.name.toLowerCase() === name.toLowerCase()
@@ -158,11 +201,13 @@ addTransactionBtn.addEventListener('click', () => {
     alert('Please select a customer first.');
     return;
   }
-  const date = trxDate.value;
-  if (!date) {
-    alert('Please enter date.');
+  const ok = markRequired([trxDate]);
+  if (!ok) {
+    alert('Please select a date.');
     return;
   }
+
+  const date = trxDate.value;
   const item = trxItem.value.trim() || 'Bricks';
   const qty = parseFloat(trxQty.value) || 0;
   const rate = parseFloat(trxRate.value) || 0;
@@ -238,7 +283,6 @@ function deleteTransaction(id) {
   loadReportSilently();
 }
 
-// from summary: open that customer's ledger
 function openCustomerLedger(customerId) {
   customerSelect.value = customerId;
   updateCurrentCustomerLabels();
@@ -280,7 +324,7 @@ function loadReport() {
   let titleSuffix = '';
 
   if (type === 'month') {
-    const monthValue = reportMonth.value; // YYYY-MM
+    const monthValue = reportMonth.value;
     if (!monthValue) {
       alert('Please select month.');
       return;
@@ -290,7 +334,7 @@ function loadReport() {
     month = parseInt(monthStr, 10);
     titleSuffix = monthValue;
   } else if (type === 'day') {
-    const dayValue = reportDay.value; // YYYY-MM-DD
+    const dayValue = reportDay.value;
     if (!dayValue) {
       alert('Please select day.');
       return;
@@ -317,7 +361,6 @@ function loadReport() {
     .slice()
     .sort((a, b) => a.date.localeCompare(b.date));
 
-  // ---------- PART 1: selected customer's detailed ledger ----------
   const custTrx = allTrxSorted.filter(t => t.customerId === customerId);
 
   let openingBalance = 0;
@@ -390,8 +433,8 @@ function loadReport() {
         <td>${t.paid.toFixed(2)}</td>
         <td>${runningBalance.toFixed(2)}</td>
         <td>
-          <button type="button" onclick="startEditTransaction('${t.id}')">Edit</button>
-          <button type="button" onclick="deleteTransaction('${t.id}')">Delete</button>
+          <button type="button" onclick="startEditTransaction('${t.id}')">✏ Edit</button>
+          <button type="button" onclick="deleteTransaction('${t.id}')">🗑 Delete</button>
         </td>
       `;
       ledgerTableBody.appendChild(tr);
@@ -404,7 +447,20 @@ function loadReport() {
   monthDiscountEl.textContent = periodDiscount.toFixed(2);
   closingBalanceEl.textContent = runningBalance.toFixed(2);
 
-  // ---------- PART 2: summary for ALL customers ----------
+  // Lifetime totals
+  let lifetimePaid = 0;
+  let lifetimeNet = 0;
+  custTrx.forEach(t => {
+    const total = t.qty * t.rate;
+    const net = total - t.discount;
+    lifetimePaid += t.paid;
+    lifetimeNet += net;
+  });
+  const lifetimeClosing = lifetimeNet - lifetimePaid;
+  lifetimePaidEl.textContent = lifetimePaid.toFixed(2);
+  lifetimeClosingEl.textContent = lifetimeClosing.toFixed(2);
+
+  // Summary for all customers
   summaryTableBody.innerHTML = '';
 
   customers.forEach(cust => {
@@ -471,7 +527,7 @@ function loadReport() {
   });
 }
 
-// ----- Export functions -----
+// Export
 function tableToExcel(tableId, filename) {
   const table = document.getElementById(tableId);
   const html = table.outerHTML;
@@ -521,8 +577,9 @@ exportCsvBtn.addEventListener('click', () => {
   tableToCSV('ledgerTable', 'ledger.csv');
 });
 
-// ----- Init -----
+// Init
 window.addEventListener('load', () => {
+  initTheme();
   renderCustomerOptions();
   const now = new Date();
   const m = (now.getMonth() + 1).toString().padStart(2, '0');
