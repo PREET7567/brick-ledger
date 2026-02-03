@@ -6,7 +6,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Brick Credit Ledger</h1>
+  <header class="top-bar">
+    <h1>Brick Credit Ledger</h1>
+    <button id="themeToggleBtn" class="theme-toggle">🌙 Dark</button>
+  </header>
 
   <div class="container">
     <!-- CUSTOMER SECTION -->
@@ -14,11 +17,11 @@
       <h2>Customer Master</h2>
       <div class="form-row">
         <label>Customer Name</label>
-        <input type="text" id="custName">
+        <input type="text" id="custName" class="required">
       </div>
       <div class="form-row">
         <label>Mobile Number</label>
-        <input type="text" id="custMobile">
+        <input type="text" id="custMobile" class="required">
       </div>
       <button id="addCustomerBtn">Add / Update Customer</button>
 
@@ -36,7 +39,7 @@
 
       <div class="form-row">
         <label>Date</label>
-        <input type="date" id="trxDate">
+        <input type="date" id="trxDate" class="required">
       </div>
       <div class="form-row">
         <label>Item</label>
@@ -90,17 +93,17 @@
 
       <div class="form-row" id="monthFilterRow">
         <label>Month</label>
-        <input type="month" id="reportMonth">
+        <input type="month" id="reportMonth" class="required-filter">
       </div>
 
       <div class="form-row" id="dayFilterRow" style="display:none;">
         <label>Day</label>
-        <input type="date" id="reportDay">
+        <input type="date" id="reportDay" class="required-filter">
       </div>
 
       <div class="form-row" id="yearFilterRow" style="display:none;">
         <label>Year</label>
-        <input type="number" id="reportYear" min="2000" max="2100">
+        <input type="number" id="reportYear" min="2000" max="2100" class="required-filter">
       </div>
 
       <button id="loadReportBtn">Load Report</button>
@@ -144,6 +147,14 @@
           <tr>
             <th colspan="9">Closing Balance (Carry Forward)</th>
             <th id="closingBalance">0</th>
+          </tr>
+          <tr>
+            <th colspan="9">Lifetime Total Paid</th>
+            <th id="lifetimePaid">0</th>
+          </tr>
+          <tr>
+            <th colspan="9">Lifetime Closing Balance</th>
+            <th id="lifetimeClosing">0</th>
           </tr>
         </tfoot>
       </table>
