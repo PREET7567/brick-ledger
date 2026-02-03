@@ -1,1 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Brick Credit Ledger</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Brick Credit Ledger</h1>
+
+  <div class="container">
+    <!-- CUSTOMER SECTION -->
+    <section>
+      <h2>Customer Master</h2>
+      <div class="form-row">
+        <label>Customer Name</label>
+        <input type="text" id="custName">
+      </div>
+      <div class="form-row">
+        <label>Mobile Number</label>
+        <input type="text" id="custMobile">
+      </div>
+      <button id="addCustomerBtn">Add / Update Customer</button>
+
+      <h3>Select Customer</h3>
+      <input type="text" id="customerSearch" placeholder="Search by name or mobile">
+      <select id="customerSelect"></select>
+    </section>
+
+    <!-- TRANSACTION SECTION -->
+    <section>
+      <h2>Add Purchase</h2>
+      <div class="form-row">
+        <label>Date</label>
+        <input type="date" id="trxDate">
+      </div>
+      <div class="form-row">
+        <label>Item</label>
+        <input type="text" id="trxItem" placeholder="Bricks">
+      </div>
+      <div class="form-row">
+        <label>Quantity</label>
+        <input type="number" id="trxQty" step="0.01">
+      </div>
+      <div class="form-row">
+        <label>Rate per Unit</label>
+        <input type="number" id="trxRate" step="0.01">
+      </div>
+      <div class="form-row">
+        <label>Discount</label>
+        <input type="number" id="trxDiscount" step="0.01" value="0">
+      </div>
+      <div class="form-row">
+        <label>Amount Paid Now</label>
+        <input type="number" id="trxPaid" step="0.01" value="0">
+      </div>
+
+      <div class="form-row">
+        <label>Total Amount</label>
+        <input type="text" id="trxTotal" readonly>
+      </div>
+      <div class="form-row">
+        <label>Net Amount</label>
+        <input type="text" id="trxNet" readonly>
+      </div>
+      <div class="form-row">
+        <label>Balance Change</label>
+        <input type="text" id="trxBalanceChange" readonly>
+      </div>
+
+      <button id="addTransactionBtn">Save Transaction</button>
+    </section>
+
+    <!-- REPORT SECTION -->
+    <section>
+      <h2>Ledger / Monthly Report</h2>
+      <div class="form-row">
+        <label>Month</label>
+        <input type="month" id="reportMonth">
+      </div>
+      <button id="loadReportBtn">Load Report</button>
+      <button id="exportExcelBtn">Export Table to Excel</button>
+      <button id="exportCsvBtn">Export Table to CSV</button>
+
+      <h3 id="reportTitle"></h3>
+      <table id="ledgerTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>Total</th>
+            <th>Discount</th>
+            <th>Net</th>
+            <th>Paid</th>
+            <th>Running Balance</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <th colspan="8">Opening Balance</th>
+            <th id="openingBalance">0</th>
+          </tr>
+          <tr>
+            <th colspan="8">Total Purchase (Net)</th>
+            <th id="monthPurchase">0</th>
+          </tr>
+          <tr>
+            <th colspan="8">Total Paid</th>
+            <th id="monthPaid">0</th>
+          </tr>
+          <tr>
+            <th colspan="8">Total Discount</th>
+            <th id="monthDiscount">0</th>
+          </tr>
+          <tr>
+            <th colspan="8">Closing Balance (Carry Forward)</th>
+            <th id="closingBalance">0</th>
+          </tr>
+        </tfoot>
+      </table>
+      <p>Use browser Print → Save as PDF to get a PDF of this report.</p>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
 
