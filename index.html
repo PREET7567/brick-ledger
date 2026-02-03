@@ -40,8 +40,17 @@
 
     <!-- TRANSACTION SECTION -->
     <section>
-      <h2>Add Purchase</h2>
+      <h2>Add Purchase / Credit</h2>
       <p id="currentCustomerInline"><strong>For:</strong> None selected</p>
+
+      <div class="form-row">
+        <label>Transaction Type</label>
+        <select id="trxType">
+          <option value="purchase">Purchase</option>
+          <option value="money">Money Credit (Payment)</option>
+          <option value="discount">Discount Credit</option>
+        </select>
+      </div>
 
       <div class="form-row">
         <label>Date</label>
@@ -121,7 +130,7 @@
         <thead>
           <tr>
             <th>Date</th>
-            <th>Item</th>
+            <th>Item / Note</th>
             <th>Qty</th>
             <th>Rate</th>
             <th>Total</th>
