@@ -1,1 +1,86 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  background: #333;
+  color: #fff;
+  margin: 0;
+  padding: 15px;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 20px;
+}
+
+section {
+  background: #fff;
+  padding: 15px;
+  border-radius: 5px;
+  flex: 1 1 300px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.15);
+}
+
+.form-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.form-row label {
+  flex: 0 0 130px;
+}
+
+.form-row input,
+select {
+  flex: 1;
+  padding: 4px 6px;
+}
+
+button {
+  margin-top: 8px;
+  margin-right: 5px;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 3px;
+  background: #1976d2;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0f5ba8;
+}
+
+#ledgerTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+#ledgerTable th,
+#ledgerTable td {
+  border: 1px solid #ccc;
+  padding: 4px 6px;
+  text-align: right;
+}
+
+#ledgerTable th:nth-child(1),
+#ledgerTable td:nth-child(1),
+#ledgerTable th:nth-child(2),
+#ledgerTable td:nth-child(2) {
+  text-align: left;
+}
+
+#ledgerTable tfoot th {
+  background: #eee;
+}
 
