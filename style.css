@@ -136,8 +136,9 @@ button:active {
   box-shadow: 0 2px 6px rgba(37,99,235,0.4);
 }
 
-/* Table */
-#ledgerTable {
+/* Table base */
+#ledgerTable,
+#summaryTable {
   width: 100%;
   border-collapse: collapse;
   margin-top: 12px;
@@ -146,30 +147,44 @@ button:active {
   overflow: hidden;
 }
 
-#ledgerTable thead {
+#ledgerTable thead,
+#summaryTable thead {
   background: linear-gradient(135deg, #2563eb, #1d4ed8);
   color: #ffffff;
 }
 
 #ledgerTable th,
-#ledgerTable td {
+#ledgerTable td,
+#summaryTable th,
+#summaryTable td {
   border: 1px solid #e5e7eb;
   padding: 6px 8px;
   text-align: right;
 }
 
+/* left columns */
 #ledgerTable th:nth-child(1),
 #ledgerTable td:nth-child(1),
 #ledgerTable th:nth-child(2),
-#ledgerTable td:nth-child(2) {
+#ledgerTable td:nth-child(2),
+#summaryTable th:nth-child(1),
+#summaryTable td:nth-child(1) {
   text-align: left;
 }
 
-#ledgerTable tbody tr:nth-child(even) {
+/* actions column center */
+#ledgerTable th:nth-child(10),
+#ledgerTable td:nth-child(10) {
+  text-align: center;
+}
+
+#ledgerTable tbody tr:nth-child(even),
+#summaryTable tbody tr:nth-child(even) {
   background: #f9fafb;
 }
 
-#ledgerTable tbody tr:hover {
+#ledgerTable tbody tr:hover,
+#summaryTable tbody tr:hover {
   background: #eff6ff;
 }
 
