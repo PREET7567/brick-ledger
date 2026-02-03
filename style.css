@@ -14,7 +14,6 @@
   --table-hover: #eff6ff;
 }
 
-/* Dark theme overrides */
 body.theme-dark {
   --bg-main: radial-gradient(circle at top, #111827, #020617);
   --card-bg: #0b1220;
@@ -78,7 +77,7 @@ body {
   gap: 20px;
 }
 
-/* Sections as cards */
+/* Sections */
 section {
   background: var(--card-bg);
   padding: 16px 18px;
@@ -193,7 +192,7 @@ button:active {
   box-shadow: 0 2px 6px rgba(37,99,235,0.4);
 }
 
-/* Table base */
+/* Tables */
 #ledgerTable,
 #summaryTable {
   width: 100%;
@@ -219,7 +218,6 @@ button:active {
   text-align: right;
 }
 
-/* left columns */
 #ledgerTable th:nth-child(1),
 #ledgerTable td:nth-child(1),
 #ledgerTable th:nth-child(2),
@@ -229,7 +227,6 @@ button:active {
   text-align: left;
 }
 
-/* actions column center */
 #ledgerTable th:nth-child(10),
 #ledgerTable td:nth-child(10) {
   text-align: center;
@@ -245,7 +242,6 @@ button:active {
   background: var(--table-hover);
 }
 
-/* Footer rows */
 #ledgerTable tfoot th {
   background: #f3f4f6;
   font-weight: 600;
