@@ -1,7 +1,3 @@
-// Data structure in localStorage:
-// customers: [{id, name, mobile}]
-// transactions: [{id, customerId, date, item, qty, rate, discount, paid}]
-
 const STORAGE_KEYS = {
   customers: 'brick_ledger_customers',
   transactions: 'brick_ledger_transactions',
@@ -31,6 +27,7 @@ const custName = document.getElementById('custName');
 const custMobile = document.getElementById('custMobile');
 const addCustomerBtn = document.getElementById('addCustomerBtn');
 const deleteCustomerBtn = document.getElementById('deleteCustomerBtn');
+const loadCustomerBtn = document.getElementById('loadCustomerBtn');
 const customerSearch = document.getElementById('customerSearch');
 const customerSelect = document.getElementById('customerSelect');
 const currentCustomerLabel = document.getElementById('currentCustomerLabel');
@@ -75,7 +72,7 @@ function generateId() {
   return Date.now().toString() + '_' + Math.random().toString(16).slice(2);
 }
 
-// ----- Theme handling -----
+// Theme
 function applyTheme(theme) {
   if (theme === 'dark') {
     document.body.classList.add('theme-dark');
@@ -98,7 +95,7 @@ themeToggleBtn.addEventListener('click', () => {
   localStorage.setItem(STORAGE_KEYS.theme, newTheme);
 });
 
-// ----- Customer handling -----
+// Customer handling
 function renderCustomerOptions(filterText = '') {
   const text = filterText.toLowerCase();
   customerSelect.innerHTML = '';
@@ -138,7 +135,6 @@ function updateCurrentCustomerLabels() {
   currentCustomerInline.innerHTML = '<strong>For:</strong> ' + text;
 }
 
-// small helper to mark required empty inputs
 function markRequired(inputs) {
   let valid = true;
   inputs.forEach(el => {
@@ -161,23 +157,60 @@ addCustomerBtn.addEventListener('click', () => {
 
   const name = custName.value.trim();
   const mobile = custMobile.value.trim();
+  const selectedId = customerSelect.value;
 
-  let existing = customers.find(
-    c => c.mobile === mobile || c.name.toLowerCase() === name.toLowerCase()
-  );
-  if (existing) {
-    existing.name = name;
-    existing.mobile = mobile;
-  } else {
-    existing = { id: generateId(), name, mobile };
-    customers.push(existing);
+  let target = null;
+
+  if (selectedId) {
+    target = customers.find(c => c.id === selectedId);
   }
+  if (!target) {
+    target = customers.find(
+      c => c.mobile === mobile || c.name.toLowerCase() === name.toLowerCase()
+    );
+  }
+
+  if (target) {
+    target.name = name;
+    target.mobile = mobile;
+  } else {
+    target = { id: generateId(), name, mobile };
+    customers.push(target);
+  }
+
   saveData(STORAGE_KEYS.customers, customers);
   renderCustomerOptions(customerSearch.value);
-  alert('Customer saved.');
+
+  if (target && target.id) {
+    customerSelect.value = target.id;
+    updateCurrentCustomerLabels();
+    loadReportSilently();
+  }
+
+  alert('Customer saved / updated.');
 });
 
-// Delete customer and all their transactions
+// Load selected customer into form
+loadCustomerBtn.addEventListener('click', () => {
+  const customerId = customerSelect.value;
+  if (!customerId) {
+    alert('Select a customer to load.');
+    return;
+  }
+  const cust = customers.find(c => c.id === customerId);
+  if (!cust) {
+    alert('Customer not found.');
+    return;
+  }
+
+  custName.value = cust.name;
+  custMobile.value = cust.mobile;
+  custName.classList.remove('input-error');
+  custMobile.classList.remove('input-error');
+
+  alert('Customer data loaded. Edit and click "Add / Update Customer" to save changes.');
+});
+
 deleteCustomerBtn.addEventListener('click', () => {
   const customerId = customerSelect.value;
   if (!customerId) {
@@ -201,7 +234,6 @@ deleteCustomerBtn.addEventListener('click', () => {
 
 customerSearch.addEventListener('input', () => {
   renderCustomerOptions(customerSearch.value);
-  // After filtering, if there is a selected option, show its ledger
   loadReportSilently();
 });
 
@@ -210,7 +242,7 @@ customerSelect.addEventListener('change', () => {
   loadReportSilently();
 });
 
-// ----- Transaction calculations -----
+// Transaction calculations
 function updateTransactionPreview() {
   const qty = parseFloat(trxQty.value) || 0;
   const rate = parseFloat(trxRate.value) || 0;
@@ -230,7 +262,7 @@ function updateTransactionPreview() {
   el.addEventListener('input', updateTransactionPreview);
 });
 
-// ----- Insert / Update transaction -----
+// Insert / Update transaction
 addTransactionBtn.addEventListener('click', () => {
   const customerId = customerSelect.value;
   if (!customerId) {
@@ -292,7 +324,7 @@ addTransactionBtn.addEventListener('click', () => {
   loadReportSilently();
 });
 
-// ----- Edit / Delete helpers -----
+// Edit / Delete transaction
 function startEditTransaction(id) {
   const trx = transactions.find(t => t.id === id);
   if (!trx) return;
@@ -325,7 +357,7 @@ function openCustomerLedger(customerId) {
   loadReport();
 }
 
-// ----- Filter type toggle -----
+// Filters
 filterType.addEventListener('change', () => {
   const type = filterType.value;
   monthFilterRow.style.display = type === 'month' ? 'flex' : 'none';
@@ -333,7 +365,7 @@ filterType.addEventListener('change', () => {
   yearFilterRow.style.display = type === 'year' ? 'flex' : 'none';
 });
 
-// ----- Reporting -----
+// Reporting helpers
 function getCustomerById(id) {
   return customers.find(c => c.id === id);
 }
@@ -352,7 +384,7 @@ function loadReport() {
   const type = filterType.value;
 
   if (!customerId) {
-    return; // if none, labels already cleared in updateCurrentCustomerLabels
+    return;
   }
 
   let year, month, day;
@@ -475,7 +507,6 @@ function loadReport() {
   monthDiscountEl.textContent = periodDiscount.toFixed(2);
   closingBalanceEl.textContent = runningBalance.toFixed(2);
 
-  // Lifetime totals
   let lifetimePaid = 0;
   let lifetimeNet = 0;
   custTrx.forEach(t => {
@@ -488,7 +519,6 @@ function loadReport() {
   lifetimePaidEl.textContent = lifetimePaid.toFixed(2);
   lifetimeClosingEl.textContent = lifetimeClosing.toFixed(2);
 
-  // Summary for all customers
   summaryTableBody.innerHTML = '';
 
   customers.forEach(cust => {
@@ -613,6 +643,5 @@ window.addEventListener('load', () => {
   const m = (now.getMonth() + 1).toString().padStart(2, '0');
   reportMonth.value = `${now.getFullYear()}-${m}`;
   reportYear.value = now.getFullYear();
-  // auto-load if there is some customer selected
   loadReportSilently();
 });
