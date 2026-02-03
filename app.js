@@ -33,6 +33,7 @@ const customerSelect = document.getElementById('customerSelect');
 const currentCustomerLabel = document.getElementById('currentCustomerLabel');
 const currentCustomerInline = document.getElementById('currentCustomerInline');
 
+const trxType = document.getElementById('trxType');
 const trxDate = document.getElementById('trxDate');
 const trxItem = document.getElementById('trxItem');
 const trxQty = document.getElementById('trxQty');
@@ -242,22 +243,45 @@ customerSelect.addEventListener('change', () => {
   loadReportSilently();
 });
 
-// Transaction calculations
+// Transaction calculations with type
 function updateTransactionPreview() {
+  const type = trxType.value;
   const qty = parseFloat(trxQty.value) || 0;
   const rate = parseFloat(trxRate.value) || 0;
-  const discount = parseFloat(trxDiscount.value) || 0;
-  const paid = parseFloat(trxPaid.value) || 0;
+  let discount = parseFloat(trxDiscount.value) || 0;
+  let paid = parseFloat(trxPaid.value) || 0;
 
-  const total = qty * rate;
-  const net = total - discount;
-  const balanceChange = net - paid;
+  let total = 0;
+  let net = 0;
+
+  if (type === 'purchase') {
+    total = qty * rate;
+    net = total - discount;
+  } else if (type === 'money') {
+    total = 0;
+    discount = 0;
+    net = 0;
+  } else if (type === 'discount') {
+    total = 0;
+    paid = 0;
+    net = -discount;
+  }
+
+  let balanceChange = 0;
+  if (type === 'purchase') {
+    balanceChange = net - paid;
+  } else if (type === 'money') {
+    balanceChange = -paid;
+  } else if (type === 'discount') {
+    balanceChange = net;
+  }
 
   trxTotal.value = total.toFixed(2);
   trxNet.value = net.toFixed(2);
   trxBalanceChange.value = balanceChange.toFixed(2);
 }
 
+trxType.addEventListener('change', updateTransactionPreview);
 [trxQty, trxRate, trxDiscount, trxPaid].forEach(el => {
   el.addEventListener('input', updateTransactionPreview);
 });
@@ -275,8 +299,9 @@ addTransactionBtn.addEventListener('click', () => {
     return;
   }
 
+  const type = trxType.value;
   const date = trxDate.value;
-  const item = trxItem.value.trim() || 'Bricks';
+  const item = trxItem.value.trim() || (type === 'purchase' ? 'Bricks' : type === 'money' ? 'Money Credit' : 'Discount Credit');
   const qty = parseFloat(trxQty.value) || 0;
   const rate = parseFloat(trxRate.value) || 0;
   const discount = parseFloat(trxDiscount.value) || 0;
@@ -285,6 +310,7 @@ addTransactionBtn.addEventListener('click', () => {
   if (editingTransactionId) {
     const idx = transactions.findIndex(t => t.id === editingTransactionId);
     if (idx !== -1) {
+      transactions[idx].type = type;
       transactions[idx].date = date;
       transactions[idx].item = item;
       transactions[idx].qty = qty;
@@ -299,6 +325,7 @@ addTransactionBtn.addEventListener('click', () => {
     const trx = {
       id: generateId(),
       customerId,
+      type,
       date,
       item,
       qty,
@@ -312,6 +339,7 @@ addTransactionBtn.addEventListener('click', () => {
 
   saveData(STORAGE_KEYS.transactions, transactions);
 
+  trxType.value = 'purchase';
   trxItem.value = '';
   trxQty.value = '';
   trxRate.value = '';
@@ -332,6 +360,7 @@ function startEditTransaction(id) {
   customerSelect.value = trx.customerId;
   updateCurrentCustomerLabels();
 
+  trxType.value = trx.type || 'purchase';
   trxDate.value = trx.date;
   trxItem.value = trx.item;
   trxQty.value = trx.qty;
@@ -377,6 +406,23 @@ function loadReportSilently() {
   if (filterType.value === 'day' && !reportDay.value) return;
   if (filterType.value === 'year' && !reportYear.value) return;
   loadReport();
+}
+
+function computeNetAndTotal(t) {
+  let total = 0;
+  let net = 0;
+  const tType = t.type || 'purchase';
+  if (tType === 'purchase') {
+    total = t.qty * t.rate;
+    net = total - t.discount;
+  } else if (tType === 'money') {
+    total = 0;
+    net = 0;
+  } else if (tType === 'discount') {
+    total = 0;
+    net = -t.discount;
+  }
+  return { total, net, tType };
 }
 
 function loadReport() {
@@ -430,8 +476,7 @@ function loadReport() {
     const tYear = d.getFullYear();
     const tMonth = d.getMonth() + 1;
     const tDay = d.getDate();
-    const total = t.qty * t.rate;
-    const net = total - t.discount;
+    const { total, net, tType } = computeNetAndTotal(t);
 
     let inPast = false;
 
@@ -446,7 +491,13 @@ function loadReport() {
     }
 
     if (inPast) {
-      openingBalance += net - t.paid;
+      if (tType === 'purchase') {
+        openingBalance += net - t.paid;
+      } else if (tType === 'money') {
+        openingBalance -= t.paid;
+      } else if (tType === 'discount') {
+        openingBalance += net;
+      }
     }
   });
 
@@ -461,8 +512,7 @@ function loadReport() {
     const tYear = d.getFullYear();
     const tMonth = d.getMonth() + 1;
     const tDay = d.getDate();
-    const total = t.qty * t.rate;
-    const net = total - t.discount;
+    const { total, net, tType } = computeNetAndTotal(t);
 
     let inRange = false;
 
@@ -475,10 +525,18 @@ function loadReport() {
     }
 
     if (inRange) {
-      runningBalance += net - t.paid;
-      periodNet += net;
-      periodPaid += t.paid;
-      periodDiscount += t.discount;
+      if (tType === 'purchase') {
+        runningBalance += net - t.paid;
+        periodNet += net;
+        periodPaid += t.paid;
+        periodDiscount += t.discount;
+      } else if (tType === 'money') {
+        runningBalance -= t.paid;
+        periodPaid += t.paid;
+      } else if (tType === 'discount') {
+        runningBalance += net;
+        periodDiscount += t.discount;
+      }
 
       const tr = document.createElement('tr');
       tr.setAttribute('data-id', t.id);
@@ -510,10 +568,15 @@ function loadReport() {
   let lifetimePaid = 0;
   let lifetimeNet = 0;
   custTrx.forEach(t => {
-    const total = t.qty * t.rate;
-    const net = total - t.discount;
-    lifetimePaid += t.paid;
-    lifetimeNet += net;
+    const { net, tType } = computeNetAndTotal(t);
+    if (tType === 'purchase') {
+      lifetimePaid += t.paid;
+      lifetimeNet += net;
+    } else if (tType === 'money') {
+      lifetimePaid += t.paid;
+    } else if (tType === 'discount') {
+      lifetimeNet += net;
+    }
   });
   const lifetimeClosing = lifetimeNet - lifetimePaid;
   lifetimePaidEl.textContent = lifetimePaid.toFixed(2);
@@ -535,8 +598,7 @@ function loadReport() {
       const tYear = d.getFullYear();
       const tMonth = d.getMonth() + 1;
       const tDay = d.getDate();
-      const total = t.qty * t.rate;
-      const net = total - t.discount;
+      const { net, tType } = computeNetAndTotal(t);
 
       let inPast = false;
       let inRange2 = false;
@@ -555,12 +617,24 @@ function loadReport() {
       }
 
       if (inPast) {
-        opening += net - t.paid;
+        if (tType === 'purchase') {
+          opening += net - t.paid;
+        } else if (tType === 'money') {
+          opening -= t.paid;
+        } else if (tType === 'discount') {
+          opening += net;
+        }
       }
       if (inRange2) {
-        pNet += net;
-        pPaid += t.paid;
-        pDisc += t.discount;
+        if (tType === 'purchase') {
+          pNet += net;
+          pPaid += t.paid;
+          pDisc += t.discount;
+        } else if (tType === 'money') {
+          pPaid += t.paid;
+        } else if (tType === 'discount') {
+          pDisc += t.discount;
+        }
       }
     });
 
