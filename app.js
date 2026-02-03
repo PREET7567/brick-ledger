@@ -30,6 +30,8 @@ const custMobile = document.getElementById('custMobile');
 const addCustomerBtn = document.getElementById('addCustomerBtn');
 const customerSearch = document.getElementById('customerSearch');
 const customerSelect = document.getElementById('customerSelect');
+const currentCustomerLabel = document.getElementById('currentCustomerLabel');
+const currentCustomerInline = document.getElementById('currentCustomerInline');
 
 const trxDate = document.getElementById('trxDate');
 const trxItem = document.getElementById('trxItem');
@@ -73,6 +75,19 @@ function renderCustomerOptions(filterText = '') {
       opt.textContent = `${c.name} (${c.mobile})`;
       customerSelect.appendChild(opt);
     });
+
+  updateCurrentCustomerLabels();
+}
+
+function updateCurrentCustomerLabels() {
+  if (!customerSelect.value || customerSelect.selectedIndex === -1) {
+    currentCustomerLabel.innerHTML = '<strong>Current Customer:</strong> None selected';
+    currentCustomerInline.innerHTML = '<strong>For:</strong> None selected';
+    return;
+  }
+  const text = customerSelect.options[customerSelect.selectedIndex].text;
+  currentCustomerLabel.innerHTML = '<strong>Current Customer:</strong> ' + text;
+  currentCustomerInline.innerHTML = '<strong>For:</strong> ' + text;
 }
 
 addCustomerBtn.addEventListener('click', () => {
@@ -102,6 +117,10 @@ customerSearch.addEventListener('input', () => {
   renderCustomerOptions(customerSearch.value);
 });
 
+customerSelect.addEventListener('change', () => {
+  updateCurrentCustomerLabels();
+});
+
 // ----- Transaction calculations -----
 function updateTransactionPreview() {
   const qty = parseFloat(trxQty.value) || 0;
@@ -126,7 +145,7 @@ function updateTransactionPreview() {
 addTransactionBtn.addEventListener('click', () => {
   const customerId = customerSelect.value;
   if (!customerId) {
-    alert('Please select a customer.');
+    alert('Please select a customer first.');
     return;
   }
   const date = trxDate.value;
@@ -153,7 +172,7 @@ addTransactionBtn.addEventListener('click', () => {
 
   transactions.push(trx);
   saveData(STORAGE_KEYS.transactions, transactions);
-  alert('Transaction saved.');
+  alert('Transaction saved for selected customer.');
 
   // clear quantity-based fields
   trxItem.value = '';
@@ -304,9 +323,7 @@ exportCsvBtn.addEventListener('click', () => {
 // ----- Init -----
 window.addEventListener('load', () => {
   renderCustomerOptions();
-  // default month = current month
   const now = new Date();
   const m = (now.getMonth() + 1).toString().padStart(2, '0');
   reportMonth.value = `${now.getFullYear()}-${m}`;
 });
-
