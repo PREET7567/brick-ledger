@@ -30,6 +30,7 @@ let editingTransactionId = null;
 const custName = document.getElementById('custName');
 const custMobile = document.getElementById('custMobile');
 const addCustomerBtn = document.getElementById('addCustomerBtn');
+const deleteCustomerBtn = document.getElementById('deleteCustomerBtn');
 const customerSearch = document.getElementById('customerSearch');
 const customerSelect = document.getElementById('customerSelect');
 const currentCustomerLabel = document.getElementById('currentCustomerLabel');
@@ -120,6 +121,16 @@ function updateCurrentCustomerLabels() {
   if (!customerSelect.value || customerSelect.selectedIndex === -1) {
     currentCustomerLabel.innerHTML = '<strong>Current Customer:</strong> None selected';
     currentCustomerInline.innerHTML = '<strong>For:</strong> None selected';
+    reportTitle.textContent = '';
+    ledgerTableBody.innerHTML = '';
+    openingBalanceEl.textContent = '0';
+    monthPurchaseEl.textContent = '0';
+    monthPaidEl.textContent = '0';
+    monthDiscountEl.textContent = '0';
+    closingBalanceEl.textContent = '0';
+    lifetimePaidEl.textContent = '0';
+    lifetimeClosingEl.textContent = '0';
+    summaryTableBody.innerHTML = '';
     return;
   }
   const text = customerSelect.options[customerSelect.selectedIndex].text;
@@ -166,12 +177,37 @@ addCustomerBtn.addEventListener('click', () => {
   alert('Customer saved.');
 });
 
+// Delete customer and all their transactions
+deleteCustomerBtn.addEventListener('click', () => {
+  const customerId = customerSelect.value;
+  if (!customerId) {
+    alert('Select a customer to delete.');
+    return;
+  }
+  const cust = customers.find(c => c.id === customerId);
+  const nameText = cust ? `${cust.name} (${cust.mobile})` : 'this customer';
+  if (!confirm(`Delete ${nameText} and ALL their transactions?`)) return;
+
+  customers = customers.filter(c => c.id !== customerId);
+  transactions = transactions.filter(t => t.customerId !== customerId);
+
+  saveData(STORAGE_KEYS.customers, customers);
+  saveData(STORAGE_KEYS.transactions, transactions);
+
+  customerSelect.value = '';
+  renderCustomerOptions(customerSearch.value);
+  alert('Customer and related transactions deleted.');
+});
+
 customerSearch.addEventListener('input', () => {
   renderCustomerOptions(customerSearch.value);
+  // After filtering, if there is a selected option, show its ledger
+  loadReportSilently();
 });
 
 customerSelect.addEventListener('change', () => {
   updateCurrentCustomerLabels();
+  loadReportSilently();
 });
 
 // ----- Transaction calculations -----
@@ -316,8 +352,7 @@ function loadReport() {
   const type = filterType.value;
 
   if (!customerId) {
-    alert('Please select a customer.');
-    return;
+    return; // if none, labels already cleared in updateCurrentCustomerLabels
   }
 
   let year, month, day;
@@ -325,20 +360,14 @@ function loadReport() {
 
   if (type === 'month') {
     const monthValue = reportMonth.value;
-    if (!monthValue) {
-      alert('Please select month.');
-      return;
-    }
+    if (!monthValue) return;
     const [yearStr, monthStr] = monthValue.split('-');
     year = parseInt(yearStr, 10);
     month = parseInt(monthStr, 10);
     titleSuffix = monthValue;
   } else if (type === 'day') {
     const dayValue = reportDay.value;
-    if (!dayValue) {
-      alert('Please select day.');
-      return;
-    }
+    if (!dayValue) return;
     const d = new Date(dayValue);
     year = d.getFullYear();
     month = d.getMonth() + 1;
@@ -346,15 +375,14 @@ function loadReport() {
     titleSuffix = dayValue;
   } else if (type === 'year') {
     const yearValue = parseInt(reportYear.value, 10);
-    if (!yearValue) {
-      alert('Please enter year.');
-      return;
-    }
+    if (!yearValue) return;
     year = yearValue;
     titleSuffix = year.toString();
   }
 
   const customer = getCustomerById(customerId);
+  if (!customer) return;
+
   reportTitle.textContent = `Ledger for ${customer.name} (${customer.mobile}) - ${type.toUpperCase()} ${titleSuffix}`;
 
   const allTrxSorted = transactions
@@ -585,4 +613,6 @@ window.addEventListener('load', () => {
   const m = (now.getMonth() + 1).toString().padStart(2, '0');
   reportMonth.value = `${now.getFullYear()}-${m}`;
   reportYear.value = now.getFullYear();
+  // auto-load if there is some customer selected
+  loadReportSilently();
 });
