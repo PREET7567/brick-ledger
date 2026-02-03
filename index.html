@@ -77,11 +77,32 @@
 
     <!-- REPORT SECTION -->
     <section>
-      <h2>Ledger / Monthly Report</h2>
+      <h2>Ledger / Period Report</h2>
+
       <div class="form-row">
+        <label>Filter Type</label>
+        <select id="filterType">
+          <option value="month">Month</option>
+          <option value="day">Day</option>
+          <option value="year">Year</option>
+        </select>
+      </div>
+
+      <div class="form-row" id="monthFilterRow">
         <label>Month</label>
         <input type="month" id="reportMonth">
       </div>
+
+      <div class="form-row" id="dayFilterRow" style="display:none;">
+        <label>Day</label>
+        <input type="date" id="reportDay">
+      </div>
+
+      <div class="form-row" id="yearFilterRow" style="display:none;">
+        <label>Year</label>
+        <input type="number" id="reportYear" min="2000" max="2100">
+      </div>
+
       <button id="loadReportBtn">Load Report</button>
       <button id="exportExcelBtn">Export Table to Excel</button>
       <button id="exportCsvBtn">Export Table to CSV</button>
@@ -99,33 +120,53 @@
             <th>Net</th>
             <th>Paid</th>
             <th>Running Balance</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody></tbody>
         <tfoot>
           <tr>
-            <th colspan="8">Opening Balance</th>
+            <th colspan="9">Opening Balance</th>
             <th id="openingBalance">0</th>
           </tr>
           <tr>
-            <th colspan="8">Total Purchase (Net)</th>
+            <th colspan="9">Total Purchase (Net)</th>
             <th id="monthPurchase">0</th>
           </tr>
           <tr>
-            <th colspan="8">Total Paid</th>
+            <th colspan="9">Total Paid</th>
             <th id="monthPaid">0</th>
           </tr>
           <tr>
-            <th colspan="8">Total Discount</th>
+            <th colspan="9">Total Discount</th>
             <th id="monthDiscount">0</th>
           </tr>
           <tr>
-            <th colspan="8">Closing Balance (Carry Forward)</th>
+            <th colspan="9">Closing Balance (Carry Forward)</th>
             <th id="closingBalance">0</th>
           </tr>
         </tfoot>
       </table>
       <p>Use browser Print → Save as PDF to get a PDF of this report.</p>
+    </section>
+
+    <!-- CUSTOMER SUMMARY SECTION -->
+    <section>
+      <h2>Customer Summary (Selected Filter)</h2>
+      <p>This shows each customer’s closing balance for the chosen period so you know who still has to pay.</p>
+
+      <table id="summaryTable">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>Period Purchase (Net)</th>
+            <th>Period Paid</th>
+            <th>Period Discount</th>
+            <th>Closing Balance</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </section>
   </div>
 
