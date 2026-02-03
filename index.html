@@ -25,11 +25,15 @@
       <h3>Select Customer</h3>
       <input type="text" id="customerSearch" placeholder="Search by name or mobile">
       <select id="customerSelect"></select>
+
+      <p id="currentCustomerLabel"><strong>Current Customer:</strong> None selected</p>
     </section>
 
     <!-- TRANSACTION SECTION -->
     <section>
       <h2>Add Purchase</h2>
+      <p id="currentCustomerInline"><strong>For:</strong> None selected</p>
+
       <div class="form-row">
         <label>Date</label>
         <input type="date" id="trxDate">
@@ -128,4 +132,3 @@
   <script src="app.js"></script>
 </body>
 </html>
-
